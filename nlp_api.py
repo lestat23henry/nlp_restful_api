@@ -62,6 +62,39 @@ def bad_request(remote_ip,error):
 	log_error(remote_ip,error)
 	return make_response(jsonify({'error': error}), 400)
 
+
+@app.route('/nlp_update', methods=['POST'])
+def api_nlp_update():
+	remote_ip = request.remote_addr
+	try:
+		logger.debug('remote %s revoke nlp update with %r' % (remote_ip,request))
+		if request.headers['Content-Type'] == 'application/json':
+			if 'update_end' not in request.json and 'update_start' not in request.json:
+				return bad_request(remote_ip,'Invalid Json Parameters')
+
+			update_start = request.json['update_start']
+			update_end = request.json['update_end']
+
+			'''
+			update_res,reason = nlp_mod.xxx(update_start,update_end)
+			if update_res:
+				logger.debug('nlp update success')
+			else:
+				logger.error('nlp update failed with reason %s' % reason)
+				
+			resp_json = { 'update_res': update_res }
+
+			return jsonify(resp_json)
+			'''
+			return jsonify(request.json)
+
+	except Exception,e:
+		logger.error('Exception in nlp_update : %s' % e.message)
+		return internal_error(remote_ip,'Exception: %s' % e.message)
+
+	return not_found('Unsupported Media Type')
+
+
 @app.route('/nlp_process',methods=['POST'])
 def api_nlp_process():
 	global success_count
@@ -70,7 +103,7 @@ def api_nlp_process():
 
 	remote_ip = request.remote_addr
 	try:
-		logger.debug('remote %s revoke nlp process with %r' % request)
+		logger.debug('remote %s revoke nlp process with %r' % (remote_ip,request))
 		if request.headers['Content-Type'] == 'application/json':
 			kw_topK = 5
 			news_content = None
@@ -89,14 +122,22 @@ def api_nlp_process():
 				return bad_request(remote_ip,'Invalid Json Parameters')
 
 			'''
-			keywords,sentiment = nlp_mod.xxx(news_content,news_title)
-			resp_json = { 'keywords': keywords,'sentiment':sentiment }
+			process_res,reason,keywords,sentiment = nlp_mod.xxx(news_content,news_title,topK)
+			if process_res:
+				success_count += 1
+				logger.debug('nlp process success')
+			else:
+				fail_count += 1
+				logger.error('nlp process failed with reason %s' % reason)
+				
+			resp_json = { 'process_res':process_res, 'reason':reason, 'keywords': keywords,'sentiment':sentiment }
 			return jsonify(resp_json)
 			'''
-			success_count += 1
 			return jsonify(request.json)
+
 	except Exception,e:
 		exception_count += 1
+		logger.error('Exception in nlp_process : %s' % e.message)
 		return internal_error(remote_ip,'Exception: %s' % e.message)
 
 	fail_count += 1
