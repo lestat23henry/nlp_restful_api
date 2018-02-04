@@ -8,11 +8,13 @@ import sys
 from logging.handlers import TimedRotatingFileHandler
 from logging.handlers import RotatingFileHandler
 
+import nlp_impl
 
 app = Flask(__name__)
-#nlp_mod = xxx()
+nlp_impl.init_process()
+nlp_impl.init_update()
 
-''' setup time rotate logging '''
+''' setup time rotate logging for web api service'''
 formatter = logging.Formatter('%(asctime)s %(levelname)-8s: %(message)s')
 
 log_file_handler = TimedRotatingFileHandler(filename="nlp_api.log",when='W0',interval=5,backupCount=2)
@@ -75,8 +77,7 @@ def api_nlp_update():
 			update_start = request.json['update_start']
 			update_end = request.json['update_end']
 
-			'''
-			update_res,reason = nlp_mod.xxx(update_start,update_end)
+			update_res,reason = nlp_impl.update_on_demand(update_start,update_end)
 			if update_res:
 				logger.debug('nlp update success')
 			else:
@@ -85,8 +86,6 @@ def api_nlp_update():
 			resp_json = { 'update_res': update_res }
 
 			return jsonify(resp_json)
-			'''
-			return jsonify(request.json)
 
 	except Exception,e:
 		logger.error('Exception in nlp_update : %s' % e.message)
@@ -121,8 +120,7 @@ def api_nlp_process():
 				fail_count += 1
 				return bad_request(remote_ip,'Invalid Json Parameters')
 
-			'''
-			process_res,reason,keywords,sentiment = nlp_mod.xxx(news_content,news_title,topK)
+			process_res,reason,keywords,sentiment = nlp_impl.process_on_demand(news_content,news_title,kw_topK)
 			if process_res:
 				success_count += 1
 				logger.debug('nlp process success')
@@ -132,8 +130,6 @@ def api_nlp_process():
 				
 			resp_json = { 'process_res':process_res, 'reason':reason, 'keywords': keywords,'sentiment':sentiment }
 			return jsonify(resp_json)
-			'''
-			return jsonify(request.json)
 
 	except Exception,e:
 		exception_count += 1

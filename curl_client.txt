@@ -1,0 +1,2 @@
+curl -l -H "Content-type: application/json" -X POST -d '{"news_content":"13521389587","news_title":"test"}' http://127.0.0.1:8080/nlp_process
+curl -l -H "Content-type: application/json" -X POST -d '{"update_start":"13521389587","update_end":"test"}' http://127.0.0.1:8080/nlp_update
