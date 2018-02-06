@@ -17,13 +17,13 @@ def set_impl_logger(logger):
 	global logger_impl
 	logger_impl = logger
 
-def init_process():
+def init_process_resource():
 	global ds
-	logger_impl.debug('init_process begin')
+	logger_impl.debug('init_process_resource begin')
 	ds = split_word.doc_splitter(None,None,'/home/lc/ht_work/nlp_restful_api/stopwords_wz.txt','/home/lc/ht_work/nlp_restful_api/userdict_wz.txt',True)
 	#TextRank.set_stopwords('/home/lc/ht_work/nlp_restful_api/stopwords_wz.txt')
 	sentiment_analysis.init_resource('/home/lc/ht_work/nlp_restful_api/stopwords_wz.txt','/home/lc/ht_work/nlp_restful_api/userdict_wz.txt')
-	logger_impl.debug('init_process end')
+	logger_impl.debug('init_process_resource end')
 
 
 def process_keyw_on_demand(request_dict,topK=5):
@@ -37,18 +37,24 @@ def process_keyw_on_demand(request_dict,topK=5):
 	:param topK:  topK keywords
 	:return:  keywords, err
 	'''
-	logger_impl.debug('process_sent_on_demand get request %r' % request_dict)
+	global ds
+	global logger_impl
+	logger_impl.debug('process_keyw_on_demand get request %r' % request_dict)
 
 	keywords = []
 
 	try:
 		processed_dict = request_dict
 		if 'title' in request_dict:
-			processed_dict['TITLE'] = ds.split_one_string(request_dict['title'])
+			processed_dict['TITLE'],err = ds.split_one_string(request_dict['title'])
+			if err:
+				logger_impl.error('process_keyw_on_demand split_one_string on title return err :%s' % err)
 
 		if 'content' in request_dict:
 			text = request_dict['content']
-			processed_dict['FIRST_SENTENCE'], processed_dict['MID_SENTENCE'], processed_dict['LAST_SENTENCE'] = ds.split_content(text)
+			processed_dict['FIRST_SENTENCE'], processed_dict['MID_SENTENCE'], processed_dict['LAST_SENTENCE'],err = ds.split_content(text)
+			if err:
+				logger_impl.error('process_keyw_on_demand split_one_string on content return err :%s' % err)
 
 	except Exception,e:
 		logger_impl.error('process_on_demand: split caught exception %s' % e.message)
@@ -75,6 +81,8 @@ def process_keyw_on_demand(request_dict,topK=5):
 
 
 def process_sent_on_demand(request_dict):
+	global logger_impl
+
 	logger_impl.debug('process_sent_on_demand get request %r' % request_dict)
 
 	try:
@@ -98,9 +106,7 @@ def process_sent_on_demand(request_dict):
 
 
 
-
-
-def init_update():
+def init_update_resource():
 	pass
 
 '''update_res,reason = nlp_impl.update_on_demand(update_start,update_end)'''

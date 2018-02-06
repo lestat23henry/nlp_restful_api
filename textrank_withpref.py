@@ -85,7 +85,7 @@ class TextRank():
 	pos_legal = ("n","ns","nt","nz","a","an","vn","i","I","j")
 	stop_words = []
 
-	all_words_with_pos = {}
+	#all_words_with_pos = {}
 
 	def __init__(self):
 		self.span = 5
@@ -125,9 +125,9 @@ class TextRank():
 
 	def calc_wordpairs(self,newsdict):
 		try:
-			first = newsdict.get('FIRST_SENTENCE',"")
-			last = newsdict.get('LAST_SENTENCE',"")
-			mid = newsdict.get('MID_SENTENCE',"")
+			first = newsdict.get('FIRST_SENTENCE',[])
+			last = newsdict.get('LAST_SENTENCE',[])
+			mid = newsdict.get('MID_SENTENCE',[])
 			whole_text = first + mid + last
 			if not whole_text:
 				return (False,'news is none')
@@ -135,37 +135,34 @@ class TextRank():
 			title_str = ""
 			if newsdict.has_key('TITLE') and newsdict['TITLE']:
 				title = []
-				for pair in newsdict['TITLE'].split(' '):
-					if len(pair.split("/")) == 2:
-						term,pos = pair.split("/")
-						title.append(term)
-						if term not in TextRank.all_words_with_pos:
-							TextRank.all_words_with_pos[term] = pos
+				for term,pos in newsdict['TITLE']:
+					title.append(term)
+					#if term not in TextRank.all_words_with_pos:
+						#TextRank.all_words_with_pos[term] = pos
 				title_str = "".join(title)
 
-			for pair in whole_text.split(' '):
+			for term,pos in whole_text:
 				try:
-					if len(pair.split("/")) == 2:
-						term,pos = pair.split("/")
-						term_info = {}
-						if TextRank._is_retain(term, pos):
-							term_info['pos'] = pos
-							if first and term in first:
-								term_info['first'] = True
-							else:
-								term_info['first'] = False
-							if last and term in last:
-								term_info['last'] = True
-							else:
-								term_info['last'] = False
-							if title_str and term in title_str:
-								term_info['title'] = True
-							else:
-								term_info['title'] = False
-							if term not in TextRank.all_words_with_pos:
-								TextRank.all_words_with_pos[term] = pos
-							self.wordpairs.append((term,term_info))
-							self.words.append(term)
+					term_info = {}
+					if TextRank._is_retain(term, pos):
+						term_info['pos'] = pos
+						if first and term in first:
+							term_info['first'] = True
+						else:
+							term_info['first'] = False
+						if last and term in last:
+							term_info['last'] = True
+						else:
+							term_info['last'] = False
+						if title_str and term in title_str:
+							term_info['title'] = True
+						else:
+							term_info['title'] = False
+
+						#if term not in TextRank.all_words_with_pos:
+							#TextRank.all_words_with_pos[term] = pos
+						self.wordpairs.append((term,term_info))
+						self.words.append(term)
 				except Exception,e1:
 					print e1.message
 					continue
@@ -253,7 +250,6 @@ class TextRank():
 			return (None,e.message)
 
 if __name__=="__main__":
-
 	'''
 	demo for textrank_withpref
 	

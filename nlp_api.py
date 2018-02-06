@@ -25,8 +25,8 @@ app = Flask(__name__)
 
 
 nlp_impl.set_impl_logger(logger)
-nlp_impl.init_process()
-nlp_impl.init_update()
+nlp_impl.init_process_resource()
+nlp_impl.init_update_resource()
 
 
 '''statistics on nlp processing'''

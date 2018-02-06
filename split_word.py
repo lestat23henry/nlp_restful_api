@@ -74,31 +74,29 @@ class doc_splitter():
 
 	def split_one_string(self,str):
 		if not str:
-			return None
+			return ([],"no str to split")
 		try:
-			outstr = u""
 			line_str = str.strip()
 			line1 = re.sub("[\s+\.\!\/_,$%^*()?;；:-【】+\"\']+|[+－——！，;:：。？、~@#￥%……&*（）]+".decode("utf8"),
 								   "".decode("utf8"), line_str)
 
 			word_pair_list = pseg.cut(line1)
 			if self.stopword:
-				out_pair = [wordpair for wordpair in word_pair_list if wordpair.word not in self.stopword]
+				out_pair = [(wordpair.word,wordpair.flag) for wordpair in word_pair_list if wordpair.word not in self.stopword]
 			else:
-				out_pair = word_pair_list
+				out_pair = [(wordpair.word,wordpair.flag) for wordpair in word_pair_list]
 
-			for pair in out_pair:
-				outstr += pair.word + "/" + pair.flag + " "
+			return (out_pair,None)
 
 		except Exception,e:
 			print e.message
+			return ([],e.message)
 
-		return outstr
 
 	def split_content(self,text):
-		text = re.sub(' ', '', text)  # 去文字间的空格
+		#text = re.sub(' ', '', text)  # 去文字间的空格
 		if not text:
-			return (u"",u"",u"")
+			return ([],[],[],"to content to split")
 		else:
 			try:
 				# todo !!
@@ -106,7 +104,7 @@ class doc_splitter():
 				news_list = re.split(u'。', text)
 				length = len(news_list)
 				if length == 0:
-					return (u"",u"",u"")
+					return ([],[],[],"split content get 0 length")
 				if length <= 2:
 					first_sen = u''
 					mid_sen = u''
@@ -124,15 +122,15 @@ class doc_splitter():
 					last_sen = u''.join(news_list[-2])
 					mid_sen = u''.join(news_list[1:-2])
 
-				first_sen_seg = self.split_one_string(first_sen)
-				mid_sen_seg = self.split_one_string(mid_sen)
-				last_sen_seg = self.split_one_string(last_sen)
+				first_sen_seg,_ = self.split_one_string(first_sen)
+				mid_sen_seg,_ = self.split_one_string(mid_sen)
+				last_sen_seg,_ = self.split_one_string(last_sen)
 
-				return (first_sen_seg,mid_sen_seg,last_sen_seg)
+				return (first_sen_seg,mid_sen_seg,last_sen_seg,None)
 
 			except Exception,e:
 				print e.message
-				return (u"",u"",u"")
+				return ([],[],[],e.message)
 
 
 	def split_one_doc(self,filepath):
