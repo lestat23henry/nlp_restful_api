@@ -10,23 +10,30 @@ from logging.handlers import RotatingFileHandler
 
 import nlp_impl
 
-app = Flask(__name__)
-nlp_impl.init_process()
-nlp_impl.init_update()
-
 ''' setup time rotate logging for web api service'''
 formatter = logging.Formatter('%(asctime)s %(levelname)-8s: %(message)s')
 
 log_file_handler = TimedRotatingFileHandler(filename="nlp_api.log",when='W0',interval=5,backupCount=2)
 log_file_handler.setFormatter(formatter)  # 可以通过setFormatter指定输出格式
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 logger = logging.getLogger(__name__)
 logger.addHandler(log_file_handler)
 
+
+app = Flask(__name__)
+
+
+nlp_impl.set_impl_logger(logger)
+nlp_impl.init_process()
+nlp_impl.init_update()
+
+
 '''statistics on nlp processing'''
-success_count = 0
-fail_count = 0
+sentiment_success_count = 0
+keyword_success_count = 0
+sentiment_fail_count = 0
+keyword_fail_count = 0
 exception_count = 0
 
 @app.route('/')
@@ -40,8 +47,10 @@ def api_root():
 @app.route('/stats')
 def api_statistics():
 	info = {}
-	info['success_count'] = success_count
-	info['fail_count'] = fail_count
+	info['sentiment_success_count'] = sentiment_success_count
+	info['keyword_success_count'] = keyword_success_count
+	info['sentiment_fail_count'] = sentiment_fail_count
+	info['keyword_fail_count'] = keyword_fail_count
 	info['exception_count'] = exception_count
 	return jsonify(info)
 
@@ -96,8 +105,10 @@ def api_nlp_update():
 
 @app.route('/nlp_process',methods=['POST'])
 def api_nlp_process():
-	global success_count
-	global fail_count
+	global sentiment_success_count
+	global keyword_success_count
+	global sentiment_fail_count
+	global keyword_fail_count
 	global exception_count
 
 	remote_ip = request.remote_addr
@@ -105,30 +116,29 @@ def api_nlp_process():
 		logger.debug('remote %s revoke nlp process with %r' % (remote_ip,request))
 		if request.headers['Content-Type'] == 'application/json':
 			kw_topK = 5
-			news_content = None
-			news_title = None
 			if 'kw_topK' in request.json:
 				kw_topK = request.json['kw_topK']
 
-			if 'news_content' in request.json:
-				news_content = request.json['news_content']
-
-			if 'news_title' in request.json:
-				news_title = request.json['news_title']
-
-			if not news_content and not news_title:
-				fail_count += 1
+			if 'content' not in request.json or 'title' not in request.json:
 				return bad_request(remote_ip,'Invalid Json Parameters')
 
-			process_res,reason,keywords,sentiment = nlp_impl.process_on_demand(news_content,news_title,kw_topK)
-			if process_res:
-				success_count += 1
-				logger.debug('nlp process success')
+			sentiment,err_s = nlp_impl.process_sent_on_demand(request.json)
+			if sentiment:
+				sentiment_success_count += 1
+				logger.debug('nlp process sentiment success')
 			else:
-				fail_count += 1
-				logger.error('nlp process failed with reason %s' % reason)
+				sentiment_fail_count += 1
+				logger.error('nlp process sentiment failed with reason %s' % err_s)
+
+			keywords,err_k = nlp_impl.process_keyw_on_demand(request.json,kw_topK)
+			if keywords:
+				keyword_success_count += 1
+				logger.debug('nlp process keyword success')
+			else:
+				keyword_fail_count += 1
+				logger.error('nlp process keyword failed with reason %s' % err_k)
 				
-			resp_json = { 'process_res':process_res, 'reason':reason, 'keywords': keywords,'sentiment':sentiment }
+			resp_json = { 'keywords': keywords,'sentiment':sentiment,'keywords_err':err_k,'sentiment_err':err_s }
 			return jsonify(resp_json)
 
 	except Exception,e:
@@ -136,8 +146,7 @@ def api_nlp_process():
 		logger.error('Exception in nlp_process : %s' % e.message)
 		return internal_error(remote_ip,'Exception: %s' % e.message)
 
-	fail_count += 1
 	return not_found(remote_ip,'Unsupported Media Type')
 
 if __name__ == '__main__':
-	app.run(host='0.0.0.0',port=5555,debug=True)
+	app.run(host='0.0.0.0',port=5555,debug=False)

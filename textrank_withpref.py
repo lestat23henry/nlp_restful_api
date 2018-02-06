@@ -117,7 +117,8 @@ class TextRank():
 
 	@classmethod
 	def _is_retain(cls,term,pos):
-		if len(term)>1 and term not in cls.stop_words and ( pos in cls.pos_legal  or (pos=="eng" and len(term)>2 and term[0].isupper())):
+		#if len(term)>1 and term not in cls.stop_word and ( pos in cls.pos_legal  or (pos=="eng" and len(term)>2 and term[0].isupper())):
+		if len(term) > 1 and ( pos in cls.pos_legal  or (pos=="eng" and len(term)>2 and term[0].isupper())):
 			return True
 		else:
 			return False
