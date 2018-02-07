@@ -1,0 +1,45 @@
+更新日期：2018-02-07  更新人：王哲
+
+当前收录总词数：导入词库：321800词     停用词库：1656词
+
+词库名称：
+
+1.导入词库(按首字母顺序)
+c_words：连词
+d_words：程度副词
+i_words：成语
+neu_v_words：普通动词
+not_words：否定词
+nr_words：人名名词
+ns_words：地点名词
+nt_words：机构团体名词
+nz_words：其它专有名词
+r_words：代词
+stm_a_words：情感形容词
+stm_n_words：情感名词
+stm_v_words：情感动词
+
+有待添加：习用语，单字，普通形容词，普通名词
+
+2.停用词库
+allstop_words：所有停用词
+nonezhstop_words：非汉字停用词
+
+使用方法：
+         停用词库用来过滤词汇
+
+         导入词库在代码中添加时要注意顺序问题（由于结巴分词在某词于多个自定义词库出现时后者覆盖前者的规则），导入代码如下：
+         #load dictionaries (my filepath)
+	 jieba.load_userdict('E:\\ZhWang\\extra_dict\\nr_words.txt') 
+	 jieba.load_userdict('E:\\ZhWang\\extra_dict\\ns_words.txt')
+	 jieba.load_userdict('E:\\ZhWang\\extra_dict\\nt_words.txt')
+	 jieba.load_userdict('E:\\ZhWang\\extra_dict\\nz_words.txt')
+         jieba.load_userdict('E:\\ZhWang\\extra_dict\\i_words.txt')
+	 jieba.load_userdict('E:\\ZhWang\\extra_dict\\c_words.txt')
+         jieba.load_userdict('E:\\ZhWang\\extra_dict\\r_words.txt')	 
+         jieba.load_userdict('E:\\ZhWang\\extra_dict\\neu_v_words.txt')
+         jieba.load_userdict('E:\\ZhWang\\extra_dict\\stm_n_words.txt')
+         jieba.load_userdict('E:\\ZhWang\\extra_dict\\stm_v_words.txt')
+         jieba.load_userdict('E:\\ZhWang\\extra_dict\\stm_a_words.txt')
+	 jieba.load_userdict('E:\\ZhWang\\extra_dict\\not_words.txt')
+         jieba.load_userdict('E:\\ZhWang\\extra_dict\\d_words.txt')
