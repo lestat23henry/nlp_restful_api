@@ -133,32 +133,17 @@ class TextRank():
 			if not whole_text:
 				return (False,'news is none')
 
-			title_str = ""
-			if newsdict.has_key('TITLE') and newsdict['TITLE']:
-				title = []
-				for term,pos in newsdict['TITLE']:
-					title.append(term)
+			title = newsdict.get('TITLE',[])
+			title_str = "".join(title)
 					#if term not in TextRank.all_words_with_pos:
 						#TextRank.all_words_with_pos[term] = pos
-				title_str = "".join(title)
 
 			for term,pos in whole_text:
 				try:
 					term_info = {}
 					if TextRank._is_retain(term, pos):
-						term_info['pos'] = pos
-						if first and term in first:
-							term_info['first'] = True
-						else:
-							term_info['first'] = False
-						if last and term in last:
-							term_info['last'] = True
-						else:
-							term_info['last'] = False
-						if title_str and term in title_str:
-							term_info['title'] = True
-						else:
-							term_info['title'] = False
+						term_info['pos'] = self._get_pos_preference(pos)
+						term_info['loc'] = self._get_loc_preference_method0(term,title_str,first,last)
 
 						#if term not in TextRank.all_words_with_pos:
 							#TextRank.all_words_with_pos[term] = pos
@@ -178,10 +163,10 @@ class TextRank():
 				# calc pos preference
 				if self.pos_pref.get(term) == None:
 					self.pos_pref[term] = []
-				self.pos_pref[term].append(self._get_pos_preference(info['pos']))
+				self.pos_pref[term].append(info['pos'])
 				# calc loc preference
 				if self.loc_pref.get(term) == None:
-					self.loc_pref[term] = self._get_loc_preference_method0(term,info['title'],info['first'],info['last'])
+					self.loc_pref[term] = info['loc']
 			except Exception,e:
 				print e.message
 				continue
@@ -197,12 +182,12 @@ class TextRank():
 		if self.freq_pref:
 			self.final_pref['freq'] = self.freq_pref
 
-		return self.freq_pref
+		return
 
 	def _get_pos_preference(self,pos):
 		#根据不同的词性给予词汇不同的分数，分数来源参考"基于语义的中文文本关键词提取算法"
 		s=0.1
-		if pos[0] in ("n","nr","ns","nt","nz","r"):
+		if pos in ("n","nr","ns","nt","nz","r"):
 			s=0.8
 		elif pos == "j":
 			s=0.7
@@ -215,12 +200,13 @@ class TextRank():
 	def _get_loc_preference_method0(self,term,title,first_sentences,last_sentences):
 		#根据词汇出现的位置打分（标题，（段）首句，（段）未句）
 		s=0.0
-		if title:
+		if first_sentences and term in first_sentences:
+			s += 0.1
+		if last_sentences and term in last_sentences:
+			s += 0.1
+		if title and term in title:
 			s += 0.8
-		if first_sentences:
-			s += 0.1
-		if last_sentences:
-			s += 0.1
+
 		return s
 
 	def textrank(self, newsdict=None,topK=10):
