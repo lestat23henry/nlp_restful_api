@@ -7,7 +7,7 @@ class sentiment_analysis():
 		pass
 
 	@classmethod
-	def init_resource(self,stopword_file,userdict_file):
+	def init_resource(self,stopword_file_list,userdict_file_list):
 		pass
 
 	def analyze(self,request_dict):

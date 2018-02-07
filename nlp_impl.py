@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import logging
 import sys
-from logging.handlers import TimedRotatingFileHandler
+import os
 
 import split_word
 from textrank_withpref import TextRank
@@ -20,9 +19,25 @@ def set_impl_logger(logger):
 def init_process_resource():
 	global ds
 	logger_impl.debug('init_process_resource begin')
-	ds = split_word.doc_splitter(None,None,'/home/lc/ht_work/nlp_restful_api/stopwords_wz.txt','/home/lc/ht_work/nlp_restful_api/userdict_wz.txt',True)
+
+	cwd = os.getcwd()
+
+	logger_impl.debug('init_process_resource current workdir %s' % cwd)
+
+	dict_wd = os.path.join(cwd,"extra_lexicon")
+	stopword_files = [os.path.join(dict_wd,"stopwords/allstop_words.txt"),os.path.join(dict_wd,"stopwords/nonzhstop_words.txt")]
+	userdict_files = [os.path.join(dict_wd,"userdicts/nr_words.txt"),os.path.join(dict_wd,"userdicts/ns_words.txt"),
+					  os.path.join(dict_wd,"userdicts/nt_words.txt"),os.path.join(dict_wd,"userdicts/nz_words.txt"),
+					  os.path.join(dict_wd,"userdicts/i_words.txt"),os.path.join(dict_wd,"userdicts/c_words.txt"),
+					  os.path.join(dict_wd,"userdicts/r_words.txt"),os.path.join(dict_wd,"userdicts/neu_v_words.txt"),
+					  os.path.join(dict_wd,"userdicts/stm_n_words.txt"),os.path.join(dict_wd,"userdicts/stm_v_words.txt"),
+					  os.path.join(dict_wd,"userdicts/stm_a_words.txt"),os.path.join(dict_wd,"userdicts/not_words.txt"),
+					  os.path.join(dict_wd,"userdicts/d_words.txt")]
+
+
+	ds = split_word.doc_splitter(None,None,stopwordfiles=stopword_files,userdicts=userdict_files,parallel=True)
 	#TextRank.set_stopwords('/home/lc/ht_work/nlp_restful_api/stopwords_wz.txt')
-	sentiment_analysis.init_resource('/home/lc/ht_work/nlp_restful_api/stopwords_wz.txt','/home/lc/ht_work/nlp_restful_api/userdict_wz.txt')
+	sentiment_analysis.init_resource(stopword_file_list=stopword_files,userdict_file_list=userdict_files)
 	logger_impl.debug('init_process_resource end')
 
 

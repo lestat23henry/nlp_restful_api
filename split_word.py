@@ -13,20 +13,21 @@ import jieba.posseg as pseg
 import codecs
 
 class doc_splitter():
-	def __init__(self,srcdir,targetfile,stopwordfile=None,userdict=None,parallel=True):
+	def __init__(self,srcdir,targetfile,stopwordfiles=None,userdicts=None,parallel=True):
 		self.srcdir = srcdir
 		self.tagfile = targetfile
 
 		self.stopword = []
 
-		if stopwordfile:
-			self._load_stopwords(stopwordfile)  #dict
+		if stopwordfiles:
+			for sw in stopwordfiles:
+				self._load_stopwords(sw)  #dict
 		self.parallel = parallel
-		self.userdict = userdict
 
 		jieba.initialize()
-		if self.userdict:
-			jieba.load_userdict(userdict)
+		if userdicts:
+			for ud in userdicts:
+				jieba.load_userdict(ud)
 
 		if self.parallel:
 			jieba.enable_parallel(cpu_count())
@@ -42,7 +43,6 @@ class doc_splitter():
 
 		except Exception,e:
 			print e.message
-			self.stopword = []
 
 
 
