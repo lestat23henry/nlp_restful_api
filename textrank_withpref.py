@@ -82,7 +82,7 @@ class UndirectWeightedGraph:
 
 class TextRank():
 
-	pos_legal = ("n","ns","nt","nz","a","an","vn","i","I","j")
+	pos_legal = ("n","nr","ns","nt","nz","a","an","vn","v","i","l","d","j","vd")
 	stop_words = []
 
 	#all_words_with_pos = {}
@@ -200,14 +200,15 @@ class TextRank():
 
 	def _get_pos_preference(self,pos):
 		#根据不同的词性给予词汇不同的分数，分数来源参考"基于语义的中文文本关键词提取算法"
+
 		s=0.1
-		if pos[0]==("n"):
+		if pos[0] in ("n","nr","ns","nt","nz"):
 			s=0.8
-		elif pos=="j":
+		elif pos == "j":
 			s=0.7
-		elif pos in ("an","i","I","vn","vd","v"):
+		elif pos in ("an","i","vn","vd","v","l"):
 			s=0.6
-		elif pos in ("eng","a"):
+		elif pos in ("eng","a","d"):
 			s=0.5
 		return s
 
