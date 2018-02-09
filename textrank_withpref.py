@@ -93,7 +93,6 @@ class TextRank():
 
 		self.pos_pref = {}
 		self.loc_pref = {}
-		self.freq_pref = {}
 		self.final_pref = {}
 
 		self.words = []
@@ -124,26 +123,36 @@ class TextRank():
 		else:
 			return False
 
+	def _get_words_from_tuple(self,tuplelist):
+		if not tuplelist:
+			return ""
+
+		wordlist = [word for word,pos in tuplelist]
+
+		return wordlist
+
 	def calc_wordpairs(self,newsdict):
 		try:
-			first = newsdict.get('FIRST_SENTENCE',[])
-			last = newsdict.get('LAST_SENTENCE',[])
-			mid = newsdict.get('MID_SENTENCE',[])
-			whole_text = first + mid + last
+			first_list = newsdict.get('FIRST_SENTENCE',[])
+			mid_list = newsdict.get('MID_SENTENCE',[])
+			last_list = newsdict.get('LAST_SENTENCE',[])
+
+			first = self._get_words_from_tuple(first_list)
+			last = self._get_words_from_tuple(last_list)
+			whole_text = first_list + mid_list + last_list
 			if not whole_text:
 				return (False,'news is none')
 
-			title = newsdict.get('TITLE',[])
-			title_str = "".join(title)
-					#if term not in TextRank.all_words_with_pos:
-						#TextRank.all_words_with_pos[term] = pos
+			title = self._get_words_from_tuple(newsdict.get('TITLE',[]))
+			#if term not in TextRank.all_words_with_pos:
+				#TextRank.all_words_with_pos[term] = pos
 
 			for term,pos in whole_text:
 				try:
 					term_info = {}
 					if TextRank._is_retain(term, pos):
 						term_info['pos'] = self._get_pos_preference(pos)
-						term_info['loc'] = self._get_loc_preference_method0(term,title_str,first,last)
+						term_info['loc'] = self._get_loc_preference_method0(term,title,first,last)
 
 						#if term not in TextRank.all_words_with_pos:
 							#TextRank.all_words_with_pos[term] = pos
@@ -179,15 +188,13 @@ class TextRank():
 			self.final_pref['pos'] = self.pos_pref
 		if self.loc_pref:
 			self.final_pref['loc'] = self.loc_pref
-		if self.freq_pref:
-			self.final_pref['freq'] = self.freq_pref
 
 		return
 
 	def _get_pos_preference(self,pos):
 		#根据不同的词性给予词汇不同的分数，分数来源参考"基于语义的中文文本关键词提取算法"
 		s=0.1
-		if pos in ("n","nr","ns","nt","nz","r"):
+		if pos[0] in ("n","r"):
 			s=0.8
 		elif pos == "j":
 			s=0.7
