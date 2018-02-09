@@ -105,6 +105,20 @@ def api_nlp_update():
 
 @app.route('/nlp_process',methods=['POST'])
 def api_nlp_process():
+	'''
+	post json format:
+	title : 新闻标题
+	content : 新闻正文
+	kw_topK : 获取关键词的个数  ( optional , default is 5 )
+	publish_date : 新闻发布时间
+	catagory : 新闻的类别
+	:return:  json格式返回信息
+	return json format:
+	keywords : 关键词列表
+	sentiment : 情感分数
+	keywords_err : 如果关键词提取出错，此处为错误信息，否则None
+	sentiment_err : 如果情感分析出错，此处为错误信息，否则None
+	'''
 	global sentiment_success_count
 	global keyword_success_count
 	global sentiment_fail_count
