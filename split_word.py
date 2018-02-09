@@ -18,6 +18,7 @@ class doc_splitter():
 		self.tagfile = targetfile
 
 		self.stopword = []
+		self.number = re.compile(ur'([一二三四五六七八九零十百千万亿]+点{0,1}[一二三四五六七八九零十百千万亿]+|[0-9]+\.{0,1}[0-9]*)')
 
 		if stopwordfiles:
 			for sw in stopwordfiles:
@@ -76,17 +77,30 @@ class doc_splitter():
 		if not str:
 			return ([],"no str to split")
 		try:
-			line_str = str.strip()
-			line1 = re.sub("[\s+\.\!\/_,$%^*()?;；:-【】+\"\']+|[+－——！，;:：。？、~@#￥%……&*（）]+".decode("utf8"),
+			line_list = self.number.split(str.strip())
+			line_result_list = []
+			out_pair_list = []
+			for line_str in line_list:
+				try:
+					if self.number.match(line_str):
+						line_result_list.append(line_str)
+						out_pair_list.append((line_str,u'm'))
+					else:
+						line1 = re.sub("[\s+\.\!\/_,$%^*()?;；:-【】+\"\']+|[+－——！，;:：。？、~@#￥%……&*（）]+".decode("utf8"), \
 								   "".decode("utf8"), line_str)
 
-			word_pair_list = pseg.cut(line1)
-			if self.stopword:
-				out_pair = [(wordpair.word,wordpair.flag) for wordpair in word_pair_list if wordpair.word not in self.stopword]
-			else:
-				out_pair = [(wordpair.word,wordpair.flag) for wordpair in word_pair_list]
+						word_pair_list = pseg.cut(line1)
+						if self.stopword:
+							out_pair = [(wordpair.word,wordpair.flag) for wordpair in word_pair_list if wordpair.word not in self.stopword]
+						else:
+							out_pair = [(wordpair.word,wordpair.flag) for wordpair in word_pair_list]
 
-			return (out_pair,None)
+						out_pair_list.extend(out_pair)
+				except Exception,e:
+					print e.message
+					continue
+
+			return (out_pair_list,None)
 
 		except Exception,e:
 			print e.message
