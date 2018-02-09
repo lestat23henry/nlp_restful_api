@@ -83,7 +83,7 @@ class UndirectWeightedGraph:
 class TextRank():
 
 	# no 'c' word
-	pos_legal = ("n","nr","ns","nt","nz","a","an","vn","v","i","l","d","j","vd","r")
+	pos_legal = ("n","nr","ns","nt","nz","a","an","vn","v","i","l","d","j","vd","r","m")
 	stop_words = []
 
 	#all_words_with_pos = {}
@@ -235,10 +235,19 @@ class TextRank():
 			nodes_rank = g.rank(self.final_pref)
 
 			tags = sorted(nodes_rank, key=nodes_rank.__getitem__, reverse=True)
+
 			if len(tags)>topK:
-				return (tags[:topK],None)
+				return_len = topK
 			else:
-				return (tags,None)
+				return_len = len
+
+			return_tags = [ tag+":"+str(nodes_rank[tag]) for tag in tags[:return_len] ]
+			return (return_tags,None)
+
+			#if len(tags)>topK:
+				#return (tags[:topK],None)
+			#else:
+				#return (tags,None)
 
 		except Exception,e:
 			return (None,e.message)
@@ -266,13 +275,6 @@ if __name__=="__main__":
 	"\u5408\u4f5c/ns   /x  \u6253\u9020/v  \u57ce\u5e02/ns  \u751f\u6d3b/vn  \u670d\u52a1\u5546/n  </x  br/eng  >/x  \u3000/x  \u3000/x  \u6676\u76db\u673a\u7535/nt  \u5b9a/v  \u589e\u52df/v  \u8d44/n  16/m  \u4ebf\u5143/m   /x  \u52a0\u7801/n  \u84dd\u5b9d\u77f3/nr  \u9879\u76ee/n  </x  br/eng  >/x  \u3000/x  \u3000/x  \u94c1\u6c49\u751f\u6001/nt  9600/m  \u4e07/m  \u6536\u8d2d/v  \u73af\u53d1/j  \u73af\u4fdd/j  80/m  %/x  \u80a1\u6743/n   /x  \u52a0\u7801/n  \u73af\u4fdd/j  \u9886\u57df/n  </x  br/eng  >/x  \u3000/x  \u3000/x  \u7231\u5c14\u773c\u79d1/nt  \u65a5\u8d44/v  2/m  \u4ebf/m  \u518d\u6b21/d  \u53c2\u4e0e/v  \u5e76\u8d2d/v  \u57fa\u91d1/n  </x  br/eng  >/x  \u3000/x  \u3000/x  \u6210\u90fd\u8def\u6865/nt  \u4e2d\u6807/ns  1.81/m  \u4ebf\u5143/m  PPP/eng  \u9879\u76ee/n  </x  br/eng  >/x  \u3000/x  \u3000/x  \u6d3d\u6d3d\u98df\u54c1/nt  \u63a8/v  1.5/m  \u4ebf\u5143/m  \u5458\u5de5/n  \u6301\u80a1/v  \u8ba1\u5212/n  </x  br/eng  >/x  \u3000/x  \u3000/x  \u68ee\u8fdc\u80a1\u4efd/nt  \u8bbe/v  \u5408\u8d44/vn  \u516c\u53f8/n   /x  \u4fc3\u8fdb/ns  \u5927\u578b/b  \u518d\u751f/v  \u8bbe\u5907/vn  \u63a8\u5e7f\u5e94\u7528/i  </x  br/eng  >/x  \u3000/x  \u3000/x  \u6da6\u90a6\u80a1\u4efd/nt  \u4e0e/p  \u6e05\u63a7/vn  \u8d44\u7ba1/n  \u5408\u4f5c/ns   /x  \u63a8\u52a8/v  \u8282\u80fd/v  \u73af\u4fdd/j  \u4ea7\u4e1a/n  \u53d1\u5c55/vn  </x  br/eng  >/x  \u3000/x  \u3000/x  \u65af\u7c73\u514b/nt  \u62df/v  \u6218\u7565/n  \u5165\u80a1/v  \u946b/nr  \u5c71/n  \u4fdd\u9669\u4ee3\u7406/n  \u516c\u53f8/n  </x  br/eng  >/x  \u3000/x  \u3000/x  */x  ST/eng  \u4e50/a  \u7535/n  \u4e2d\u671f/t  \u51c0\u5229/n  \u540c\u6bd4/j  \u589e/v  " \
 	"\u4e09\u6210/m  </x  br/eng  >/x  \u3000/x  \u3000/x  \u798f\u751f\u4f73/nz  \u4fe1/n  225/m  \u4e07/m  \u53c2\u80a1/v  \u8bbe\u7acb/v  \u4e0a\u95e8/ns  \u63a8\u62ff/v  \u670d\u52a1\u516c\u53f8/n  </x  br/eng  >/x  \u3000/x  \u3000/x  \u5206\u8c46/n  \u6559\u80b2/ns  \u5b9a/v  \u589e\u52df/v  \u8d44/n  4.5/m  \u4ebf/m  \u52a0\u7801/n  \u4e3b\u4e1a/n  </x  br/eng  >/x  \u3000/x  \u3000/x  \u5929\u6daf\u793e\u533a/l  \u5c06/d  \u6b63\u5f0f/ad  \u6302\u724c/v   /x  \u52df/vg  \u8d44/n  3999/m  \u4e07\u5143/m  \u89e3\u51b3/v  \u77ed\u671f/b  \u6d41\u52a8\u8d44\u91d1/n  \u9700\u6c42/v  </x  br/eng  >/x  \u3000/x  \u3000/x  \u2014/x  \u2014/x  \u2014/x  \u2014/x  \u8d1f\u9762/n  \u6d88\u606f/n  \u2014/x  \u2014/x  \u2014/x  \u2014/x  </x  br/eng  >/x  \u3000/x  \u3000/x  \u4e07\u8fbe\u9662\u7ebf/nt  \u6f84\u6e05/v  \u738b\u5065\u6797/nr  \u59bb\u5b50/n  \u5185\u5e55/n  \u4ea4\u6613/n  \u4f20\u95fb/n  </x  br/eng  >/x  \u3000/x  \u3000/x  \u795e\u5f00\u80a1\u4efd/nt  \u603b\u7ecf\u7406/n  \u6d89/v  \u77ed\u7ebf\u4ea4\u6613/n  \u88ab/p  \u8bc1\u76d1\u4f1a/j  \u7acb\u6848/n  \u8c03\u67e5/vn  </x  br/eng  >/x  \u3000/x  \u3000/x  \u4e2d\u6d77\u8fbe/nt  \u4e0a\u534a\u5e74/t  \u51c0\u5229/n  \u4e0b\u964d/v  \u903e/vg  \u4e03\u6210/m  </x  br/eng  >/x  \u3000/x  \u3000/x  \u7696\u6c5f\u7269\u6d41/nt  \u6536\u5230/v  \u8bc1\u76d1\u4f1a/j  \u884c\u653f\u5904\u7f5a/n  \u4e66/n   /x  \u88ab/p  \u8b66\u544a/n  \u5e76/c  \u7f5a\u6b3e/n  50/m  \u4e07\u5143/m  </x  br/eng  >/x  \u3000/x  \u3000/x  \u6d77\u5b81\u76ae\u57ce/nt  \u4e0a\u534a\u5e74/t  \u51c0\u5229/n  5.11/m  \u4ebf/m   /x  \u540c\u6bd4/j  \u964d/v  14/m  %/x  </x  br/eng  >/x  \u3000/x  " \
 	"\u3000/x  \u90e8\u5206/n  \u4ea7\u54c1/n  \u5904/n  \u57f9\u80b2/vn  \u671f/n   /x  \u5343\u91d1\u836f\u4e1a/nt  \u4e2d\u671f/t  \u51c0\u5229/n  \u4e0b\u6ed1/v  8.5/m  %/x  </x  br/eng  >/x  \u3000/x  \u3000/x"
-	# news
-	# id :
-	# title :
-	# first :
-	# last :
-	# content :
-	# keywords :
 
 	newsdict = {}
 	newsdict['TITLE'] = None
