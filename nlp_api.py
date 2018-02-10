@@ -15,7 +15,7 @@ formatter = logging.Formatter('%(asctime)s %(levelname)-8s: %(message)s')
 
 log_file_handler = TimedRotatingFileHandler(filename="nlp_api.log",when='W0',interval=5,backupCount=2)
 log_file_handler.setFormatter(formatter)  # 可以通过setFormatter指定输出格式
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 logger = logging.getLogger(__name__)
 logger.addHandler(log_file_handler)

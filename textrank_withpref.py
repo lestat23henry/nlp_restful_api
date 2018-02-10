@@ -236,18 +236,20 @@ class TextRank():
 
 			tags = sorted(nodes_rank, key=nodes_rank.__getitem__, reverse=True)
 
+			'''
 			if len(tags)>topK:
 				return_len = topK
 			else:
-				return_len = len
+				return_len = len(tags)
 
 			return_tags = [ tag+":"+str(nodes_rank[tag]) for tag in tags[:return_len] ]
 			return (return_tags,None)
+			'''
 
-			#if len(tags)>topK:
-				#return (tags[:topK],None)
-			#else:
-				#return (tags,None)
+			if len(tags) > topK:
+				return (tags[:topK],None)
+			else:
+				return (tags,None)
 
 		except Exception,e:
 			return (None,e.message)
