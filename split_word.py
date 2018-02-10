@@ -18,7 +18,7 @@ class doc_splitter():
 		self.tagfile = targetfile
 
 		self.stopword = []
-		self.number = re.compile(ur'([一二三四五六七八九零十百千万亿]+点{0,1}[一二三四五六七八九零十百千万亿]+|[0-9]+\.{0,1}[0-9]*)')
+		self.number = re.compile(ur'([壹贰叁肆伍陆柒捌玖拾佰仟一二三四五六七八九零十百千万亿]+点{0,1}[壹贰叁肆伍陆柒捌玖拾佰仟一二三四五六七八九零十百千万亿]+|[0-9]+\.{0,1}[0-9]*)')
 
 		if stopwordfiles:
 			for sw in stopwordfiles:
