@@ -26,6 +26,8 @@ def init_process_resource():
 
 	dict_wd = os.path.join(cwd,"extra_lexicon")
 	stopword_files = [os.path.join(dict_wd,"stopwords/allstop_words.txt"),os.path.join(dict_wd,"stopwords/nonzhstop_words.txt")]
+	userdict_files = []
+	'''
 	userdict_files = [os.path.join(dict_wd,"userdicts/nr_words.txt"),os.path.join(dict_wd,"userdicts/ns_words.txt"),
 					  os.path.join(dict_wd,"userdicts/nt_words.txt"),os.path.join(dict_wd,"userdicts/nz_words.txt"),
 					  os.path.join(dict_wd,"userdicts/i_words.txt"),os.path.join(dict_wd,"userdicts/c_words.txt"),
@@ -33,6 +35,7 @@ def init_process_resource():
 					  os.path.join(dict_wd,"userdicts/stm_n_words.txt"),os.path.join(dict_wd,"userdicts/stm_v_words.txt"),
 					  os.path.join(dict_wd,"userdicts/stm_a_words.txt"),os.path.join(dict_wd,"userdicts/not_words.txt"),
 					  os.path.join(dict_wd,"userdicts/d_words.txt")]
+					  '''
 
 
 	ds = split_word.doc_splitter(None,None,stopwordfiles=stopword_files,userdicts=userdict_files,parallel=True)
@@ -56,18 +59,20 @@ def preprocess_common(request_dict):
 
 	if not request_dict:
 		logger_impl.error('preprocess_common err :%s','news has no info')
+		return (None,'News has no info')
 
 	if 'title' not in request_dict and 'content' not in request_dict:
-		return None
+		logger_impl.error('preprocess_common err :%s','news has no title and content')
+		return (None,'News has no content and title')
 
-	if not request_dict['title']:
-		ret_dict['title'] = ds.split_one_string_orig(request_dict['title'])
+	if request_dict['title']:
+		ret_dict['title'],_ = ds.split_one_string_orig(request_dict['title'])
 	else:
 		ret_dict['title'] = []
 
 
-	if not request_dict['content']:
-		ret_dict['first'],ret_dict['mid'],ret_dict['last'] = ds.split_content_orig(request_dict['content'])
+	if request_dict['content']:
+		ret_dict['first'],ret_dict['mid'],ret_dict['last'],_ = ds.split_content_orig(request_dict['content'])
 	else:
 		ret_dict['first'],ret_dict['mid'],ret_dict['last'] = [],[],[]
 
@@ -75,7 +80,7 @@ def preprocess_common(request_dict):
 	ret_dict['publish_date'] = request_dict.get('publish_date',"")
 	ret_dict['catagory'] = request_dict.get('catagory',"")
 
-	return ret_dict
+	return ret_dict,None
 
 def process_keyw_on_demand(pre_dict,topK=5):
 	'''
@@ -96,17 +101,17 @@ def process_keyw_on_demand(pre_dict,topK=5):
 	try:
 		processed_dict = {}
 		if 'title' in pre_dict:
-			processed_dict['TITLE'],err = ds.process_string_wordpair(pre_dict['title'])
+			processed_dict['TITLE'],err = ds.filter_string_wordpair(pre_dict['title'])
 			if err:
 				logger_impl.error('process_keyw_on_demand split_one_string on title return err :%s' % err)
 
-			processed_dict['FIRST_SENTENCE'],err = ds.process_string_wordpair(pre_dict['first'])
+			processed_dict['FIRST_SENTENCE'],err = ds.filter_string_wordpair(pre_dict['first'])
 			if err:
 				logger_impl.error('process_keyw_on_demand split_one_string on first return err :%s' % err)
-			processed_dict['MID_SENTENCE'],err = ds.process_string_wordpair(pre_dict['mid'])
+			processed_dict['MID_SENTENCE'],err = ds.filter_string_wordpair(pre_dict['mid'])
 			if err:
 				logger_impl.error('process_keyw_on_demand split_one_string on mid return err :%s' % err)
-			processed_dict['LAST_SENTENCE'],err = ds.process_string_wordpair(pre_dict['last'])
+			processed_dict['LAST_SENTENCE'],err = ds.filter_string_wordpair(pre_dict['last'])
 			if err:
 				logger_impl.error('process_keyw_on_demand split_one_string on last return err :%s' % err)
 
@@ -134,14 +139,12 @@ def process_keyw_on_demand(pre_dict,topK=5):
 		return keywords,e.message
 
 
-def process_sent_on_demand(request_dict):
+def process_sent_on_demand(pre_dict):
 	global logger_impl
-
-	logger_impl.debug('process_sent_on_demand get request %r' % request_dict)
 
 	try:
 		sa = sentiment_analysis()
-		sentiment_score,err = sa.analyze(request_dict)
+		sentiment_score,err = sa.analyze(pre_dict)
 		if not sentiment_score:
 			logger_impl.error('process_on_demand: sentiment_analysis return err: %s' % err)
 			return None,err

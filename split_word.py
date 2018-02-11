@@ -18,8 +18,9 @@ class doc_splitter():
 		self.tagfile = targetfile
 
 		self.stopword = []
-		self.number = re.compile(ur'([壹贰叁肆伍陆柒捌玖拾佰仟一二三四五六七八九零十百千万亿]+点{0,1}[壹贰叁肆伍陆柒捌玖拾佰仟一二三四五六七八九零十百千万亿]+|[0-9]+\.{0,1}[0-9]*)')
-
+		self.number = re.compile(ur'([壹贰叁肆伍陆柒捌玖拾佰仟一二三四五六七八九零十百千万亿]+点{0,1}[壹贰叁肆伍陆柒捌玖拾佰仟一二三四五六七八九零十百千万亿]*|[0-9]+\.{0,1}[0-9]*)')
+		self.sep = re.compile(ur'([。！？])')
+		self.filter_sign = re.compile("[\s+\.\!\/_,$%^*()?;；:-【】+\"\']+|[+－——！，;:：。？、~@#￥%……&*（）]+".decode("utf8"))
 		if stopwordfiles:
 			for sw in stopwordfiles:
 				self._load_stopwords(sw)  #dict
@@ -37,16 +38,12 @@ class doc_splitter():
 		try:
 			with open(fn) as f:
 				for line in f:
-					try:
-						self.stopword.append(line.strip().decode('utf-8'))
-					except Exception,e:
-						continue
+					self.stopword.append(line.strip().decode('utf-8'))
 
 		except Exception,e:
 			print e.message
 
-
-
+	'''
 	def utf8_one_doc(self,filepath):
 		if not filepath:
 			return
@@ -72,15 +69,31 @@ class doc_splitter():
 
 		print u'time: %s ==> 文件%s已经转换为%s\n' % (datetime.now(), filepath, filepath_utf8)
 		return filepath_utf8
+	'''
 
 	def split_one_string_orig(self,str):
 		if not str:
 			return ([],"no str to split")
 
 		try:
-			ret_list = list(pseg.cut(str))
+			'''
+			#str = re.sub(' ', '', str)  # 去文字间的空格
+			line_list = self.number.split(str.strip())
+			out_pair_list = []
+			for line_str in line_list:
+				try:
+					if self.number.match(line_str.strip()):
+						out_pair_list.append((line_str,u'm'))
+					else:
+						cut_list = list(pseg.cut(line_str.strip()))
+						out_pair_list.extend(cut_list)
+				except Exception,e:
+					print e.message
+					continue
+			'''
+			out_pair_list = pseg.cut(str.strip())
 
-			return (ret_list,None)
+			return (out_pair_list,None)
 		except Exception,e:
 			print e.message
 			return ([],e.message)
@@ -90,30 +103,38 @@ class doc_splitter():
 			return ([],[],[],"to content to split")
 		try:
 			# todo !!
-			news_list = re.split(ur'([。！？])', content)
+			news_list = self.sep.split(content)
+			#news_list = re.split(ur'([。！？])', content)
 			length = len(news_list)
 			if length == 0:
 				return ([],[],[],"split content get 0 length")
 			if length <= 2:
 				first_sen = u''
 				mid_sen = u''
-				last_sen = u''.join(news_list[0])
+				last_sen = u''.join(news_list)
 			elif length == 3:
-				first_sen = u''.join(news_list[0])
+				first_sen = u''.join(news_list[0:2])
 				mid_sen = u''
-				last_sen = u''.join(news_list[1])
-			elif length == 4:
-				first_sen = u''.join(news_list[0])
-				mid_sen = u''.join(news_list[1])
-				last_sen = u''.join(news_list[2])
+				last_sen = u''.join(news_list[-1])
 			else:
-				first_sen = u''.join(news_list[0])
-				last_sen = u''.join(news_list[-2])
-				mid_sen = u''.join(news_list[1:-2])
+				if news_list[-1] in [u'。',u'！',u'?']:
+					first_sen = u''.join(news_list[0:2])
+					last_sen = u''.join(news_list[-2:])
+					mid_sen = u''.join(news_list[2:-2])
+				elif news_list[-1] == u'':
+					first_sen = u''.join(news_list[0:2])
+					last_sen = u''.join(news_list[-3:-1])
+					mid_sen = u''.join(news_list[2:-3])
+				else:
+					first_sen = u''.join(news_list[0:2])
+					last_sen = u''.join(news_list[-1])
+					mid_sen = u''.join(news_list[2:-1])
 
-			first_sen_seg,_ = self.split_one_string(first_sen)
-			mid_sen_seg,_ = self.split_one_string(mid_sen)
-			last_sen_seg,_ = self.split_one_string(last_sen)
+
+
+			first_sen_seg,_ = self.split_one_string_orig(first_sen)
+			mid_sen_seg,_ = self.split_one_string_orig(mid_sen)
+			last_sen_seg,_ = self.split_one_string_orig(last_sen)
 
 			return (first_sen_seg,mid_sen_seg,last_sen_seg,None)
 
@@ -121,8 +142,24 @@ class doc_splitter():
 			print e.message
 			return ([],[],[],e.message)
 
+	def filter_string_wordpair(self,wordpair_list):
+		if not wordpair_list:
+			return [],"wordpair is None"
+
+		new_list = []
+
+		for word,pos in wordpair_list:
+			try:
+				if word not in self.stopword and (not self.filter_sign.match(word)):
+					new_list.append((word,pos))
+			except Exception,e:
+				print e.message
+				continue
+
+		return new_list,None
 
 
+	'''
 	def split_one_string(self,str):
 		if not str:
 			return ([],"no str to split")
@@ -235,6 +272,7 @@ class doc_splitter():
 			self.split_one_doc(txt_utf8)
 
 		return True
+	'''
 
 
 #class test:

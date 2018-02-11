@@ -133,9 +133,9 @@ def api_nlp_process():
 			if 'kw_topK' in request.json:
 				kw_topK = request.json['kw_topK']
 
-			processed_dict = nlp_impl.preprocess_common(request.json)
-			if not processed_dict:
-				return bad_request(remote_ip,'Invalid Json Parameters')
+			processed_dict,err = nlp_impl.preprocess_common(request.json)
+			if err:
+				return bad_request(remote_ip,'Invalid Json Parameters : %s' % err)
 
 			sentiment,err_s = nlp_impl.process_sent_on_demand(processed_dict)
 			if sentiment:
