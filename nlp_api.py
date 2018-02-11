@@ -133,10 +133,11 @@ def api_nlp_process():
 			if 'kw_topK' in request.json:
 				kw_topK = request.json['kw_topK']
 
-			if 'content' not in request.json or 'title' not in request.json:
+			processed_dict = nlp_impl.preprocess_common(request.json)
+			if not processed_dict:
 				return bad_request(remote_ip,'Invalid Json Parameters')
 
-			sentiment,err_s = nlp_impl.process_sent_on_demand(request.json)
+			sentiment,err_s = nlp_impl.process_sent_on_demand(processed_dict)
 			if sentiment:
 				sentiment_success_count += 1
 				logger.debug('nlp process sentiment success')
@@ -144,7 +145,7 @@ def api_nlp_process():
 				sentiment_fail_count += 1
 				logger.error('nlp process sentiment failed with reason %s' % err_s)
 
-			keywords,err_k = nlp_impl.process_keyw_on_demand(request.json,kw_topK)
+			keywords,err_k = nlp_impl.process_keyw_on_demand(processed_dict,kw_topK)
 			if keywords:
 				keyword_success_count += 1
 				logger.debug('nlp process keyword success')

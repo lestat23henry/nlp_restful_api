@@ -41,7 +41,43 @@ def init_process_resource():
 	logger_impl.debug('init_process_resource end')
 
 
-def process_keyw_on_demand(request_dict,topK=5):
+def preprocess_common(request_dict):
+	'''
+	preprocess the original news info, convert to devided word pairs for keywords and sentiment
+	:param request_dict:  original infos
+	:return: dict contains word pair list
+	title :  title word pair list
+	content :  content word pair list
+	publish_date : date news are published
+	catagory :  news catagory
+	'''
+	ret_dict = {}
+	logger_impl.debug('process_keyw_on_demand get request %r' % request_dict)
+
+	if not request_dict:
+		logger_impl.error('preprocess_common err :%s','news has no info')
+
+	if 'title' not in request_dict and 'content' not in request_dict:
+		return None
+
+	if not request_dict['title']:
+		ret_dict['title'] = ds.split_one_string_orig(request_dict['title'])
+	else:
+		ret_dict['title'] = []
+
+
+	if not request_dict['content']:
+		ret_dict['first'],ret_dict['mid'],ret_dict['last'] = ds.split_content_orig(request_dict['content'])
+	else:
+		ret_dict['first'],ret_dict['mid'],ret_dict['last'] = [],[],[]
+
+
+	ret_dict['publish_date'] = request_dict.get('publish_date',"")
+	ret_dict['catagory'] = request_dict.get('catagory',"")
+
+	return ret_dict
+
+def process_keyw_on_demand(pre_dict,topK=5):
 	'''
 	process input news info on demand:
 	step1. clean all data
@@ -54,22 +90,25 @@ def process_keyw_on_demand(request_dict,topK=5):
 	'''
 	global ds
 	global logger_impl
-	logger_impl.debug('process_keyw_on_demand get request %r' % request_dict)
 
 	keywords = []
 
 	try:
-		processed_dict = request_dict
-		if 'title' in request_dict:
-			processed_dict['TITLE'],err = ds.split_one_string(request_dict['title'])
+		processed_dict = {}
+		if 'title' in pre_dict:
+			processed_dict['TITLE'],err = ds.process_string_wordpair(pre_dict['title'])
 			if err:
 				logger_impl.error('process_keyw_on_demand split_one_string on title return err :%s' % err)
 
-		if 'content' in request_dict:
-			text = request_dict['content']
-			processed_dict['FIRST_SENTENCE'], processed_dict['MID_SENTENCE'], processed_dict['LAST_SENTENCE'],err = ds.split_content(text)
+			processed_dict['FIRST_SENTENCE'],err = ds.process_string_wordpair(pre_dict['first'])
 			if err:
-				logger_impl.error('process_keyw_on_demand split_one_string on content return err :%s' % err)
+				logger_impl.error('process_keyw_on_demand split_one_string on first return err :%s' % err)
+			processed_dict['MID_SENTENCE'],err = ds.process_string_wordpair(pre_dict['mid'])
+			if err:
+				logger_impl.error('process_keyw_on_demand split_one_string on mid return err :%s' % err)
+			processed_dict['LAST_SENTENCE'],err = ds.process_string_wordpair(pre_dict['last'])
+			if err:
+				logger_impl.error('process_keyw_on_demand split_one_string on last return err :%s' % err)
 
 	except Exception,e:
 		logger_impl.error('process_on_demand: split caught exception %s' % e.message)

@@ -73,6 +73,56 @@ class doc_splitter():
 		print u'time: %s ==> 文件%s已经转换为%s\n' % (datetime.now(), filepath, filepath_utf8)
 		return filepath_utf8
 
+	def split_one_string_orig(self,str):
+		if not str:
+			return ([],"no str to split")
+
+		try:
+			ret_list = list(pseg.cut(str))
+
+			return (ret_list,None)
+		except Exception,e:
+			print e.message
+			return ([],e.message)
+
+	def split_content_orig(self,content):
+		if not content:
+			return ([],[],[],"to content to split")
+		try:
+			# todo !!
+			news_list = re.split(ur'([。！？])', content)
+			length = len(news_list)
+			if length == 0:
+				return ([],[],[],"split content get 0 length")
+			if length <= 2:
+				first_sen = u''
+				mid_sen = u''
+				last_sen = u''.join(news_list[0])
+			elif length == 3:
+				first_sen = u''.join(news_list[0])
+				mid_sen = u''
+				last_sen = u''.join(news_list[1])
+			elif length == 4:
+				first_sen = u''.join(news_list[0])
+				mid_sen = u''.join(news_list[1])
+				last_sen = u''.join(news_list[2])
+			else:
+				first_sen = u''.join(news_list[0])
+				last_sen = u''.join(news_list[-2])
+				mid_sen = u''.join(news_list[1:-2])
+
+			first_sen_seg,_ = self.split_one_string(first_sen)
+			mid_sen_seg,_ = self.split_one_string(mid_sen)
+			last_sen_seg,_ = self.split_one_string(last_sen)
+
+			return (first_sen_seg,mid_sen_seg,last_sen_seg,None)
+
+		except Exception,e:
+			print e.message
+			return ([],[],[],e.message)
+
+
+
 	def split_one_string(self,str):
 		if not str:
 			return ([],"no str to split")
