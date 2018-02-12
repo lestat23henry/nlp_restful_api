@@ -18,7 +18,7 @@ class doc_splitter():
 		self.tagfile = targetfile
 
 		self.stopword = []
-		self.number = re.compile(ur'([壹贰叁肆伍陆柒捌玖拾佰仟一二三四五六七八九零十百千万亿]+点{0,1}[壹贰叁肆伍陆柒捌玖拾佰仟一二三四五六七八九零十百千万亿]+|[0-9]+\.{0,1}[0-9]*)')
+		self.number = re.compile(ur'([壹贰叁肆伍陆柒捌玖拾佰仟一二三四五六七八九零十百千万亿]+点{0,1}[壹贰叁肆伍陆柒捌玖拾佰仟一二三四五六七八九零十百千万亿]*|[0-9]+\.{0,1}[0-9]*)')
 
 		if stopwordfiles:
 			for sw in stopwordfiles:
@@ -73,10 +73,82 @@ class doc_splitter():
 		print u'time: %s ==> 文件%s已经转换为%s\n' % (datetime.now(), filepath, filepath_utf8)
 		return filepath_utf8
 
+	def _process_number(self,word_pair_list):
+		if not word_pair_list:
+			return None,"no word pair in _process_number"
+
+		try:
+			begin_num = False
+			ret_list = []
+			number_list = []
+			# simple connect all adjacent 'm' word , for now
+			for word,pair in word_pair_list:
+				if not begin_num:
+					if pair == 'm':
+							begin_num = True
+							number_list.append(word)
+					else:
+						ret_list.append((word,pair))
+				else:
+					if pair == 'm':
+						number_list.append(word)
+					else:
+						begin_num = False
+						totalnum = "".join(number_list)
+						ret_list.append((totalnum,'m'))
+						ret_list.append((word,pair))
+						number_list = []
+
+			'''
+			for word,pair in word_pair_list:
+				if not begin_num:
+					if pair == 'm':
+						mn = self.number.match(word)
+						if mn.group(0) == word:
+							begin_num = True
+							number_list.append(word)
+						else:
+							ret_list.append((word,pair))
+					else:
+						ret_list.append((word,pair))
+				else:
+					if pair == 'm' and self.number.match(word):
+						number_list.append(word)
+					else:
+						begin_num = False
+						totalnum = "".join(number_list)
+						ret_list.append((totalnum,'m'))
+						number_list = []
+
+			'''
+			return ret_list,None
+
+
+		except Exception,e:
+			print e.message
+			return None,e.message
+
+
+
 	def split_one_string(self,str):
 		if not str:
 			return ([],"no str to split")
 		try:
+			line1 = re.sub("[\s+\.\!\/_,$%^*()?;；:-【】+\"\']+|[+－——！，;:：。？、~@#￥%……&*（）]+".decode("utf8"), \
+								   "".decode("utf8"), str.strip())
+
+			word_pair_list = pseg.cut(line1)
+			if self.stopword:
+				out_pair = [(wordpair.word,wordpair.flag) for wordpair in word_pair_list if wordpair.word not in self.stopword]
+			else:
+				out_pair = [(wordpair.word,wordpair.flag) for wordpair in word_pair_list]
+
+			out_pair_processed,err = self._process_number(out_pair)
+			if err:
+				return (None,err)
+
+			return (out_pair_processed,None)
+			'''
 			line_list = self.number.split(str.strip())
 			line_result_list = []
 			out_pair_list = []
@@ -101,6 +173,7 @@ class doc_splitter():
 					continue
 
 			return (out_pair_list,None)
+			'''
 
 		except Exception,e:
 			print e.message
