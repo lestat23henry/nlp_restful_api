@@ -6,7 +6,8 @@ import os
 
 import split_word
 from textrank_withpref import TextRank
-from sentiment_analysis_mock import sentiment_analysis
+#from sentiment_analysis_mock import sentiment_analysis
+from sentiment_analysis import Sentiment_Analysis
 
 ''' global variables '''
 logger_impl = None
@@ -26,6 +27,7 @@ def init_process_resource():
 
 	dict_wd = os.path.join(cwd,"extra_lexicon")
 	stopword_files = [os.path.join(dict_wd,"stopwords/allstop_words.txt"),os.path.join(dict_wd,"stopwords/nonzhstop_words.txt")]
+	'''
 	userdict_files = [os.path.join(dict_wd,"userdicts/nr_words.txt"),os.path.join(dict_wd,"userdicts/ns_words.txt"),
 					  os.path.join(dict_wd,"userdicts/nt_words.txt"),os.path.join(dict_wd,"userdicts/nz_words.txt"),
 					  os.path.join(dict_wd,"userdicts/i_words.txt"),os.path.join(dict_wd,"userdicts/c_words.txt"),
@@ -33,11 +35,17 @@ def init_process_resource():
 					  os.path.join(dict_wd,"userdicts/stm_n_words.txt"),os.path.join(dict_wd,"userdicts/stm_v_words.txt"),
 					  os.path.join(dict_wd,"userdicts/stm_a_words.txt"),os.path.join(dict_wd,"userdicts/not_words.txt"),
 					  os.path.join(dict_wd,"userdicts/d_words.txt")]
+	'''
+	userdict_files = []
 
+	pkl_wd = os.path.join(cwd,"dicts_pkl")
+	stm_pkl = os.path.join(pkl_wd,"stm_dict.pkl")
+	dg_pkl = os.path.join(pkl_wd,"dg_dict.pkl")
+	not_pkl = os.path.join(pkl_wd,"not_dict.pkl")
 
 	ds = split_word.doc_splitter(None,None,stopwordfiles=stopword_files,userdicts=userdict_files,parallel=True)
 	#TextRank.set_stopwords('/home/lc/ht_work/nlp_restful_api/stopwords_wz.txt')
-	sentiment_analysis.init_resource(stopword_file_list=stopword_files,userdict_file_list=userdict_files)
+	Sentiment_Analysis.load_dict_resource(stm_dict_pkl=stm_pkl,dg_dict_pkl=dg_pkl,not_dict_pkl=not_pkl)
 	logger_impl.debug('init_process_resource end')
 
 
@@ -101,9 +109,9 @@ def process_sent_on_demand(request_dict):
 	logger_impl.debug('process_sent_on_demand get request %r' % request_dict)
 
 	try:
-		sa = sentiment_analysis()
-		sentiment_score,err = sa.analyze(request_dict)
-		if not sentiment_score:
+		sa =Sentiment_Analysis()
+		sentiment_flag,sentiment_score,err = sa.sentiment_analysis(request_dict)
+		if err:
 			logger_impl.error('process_on_demand: sentiment_analysis return err: %s' % err)
 			return None,err
 
