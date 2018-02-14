@@ -110,11 +110,13 @@ def process_sent_on_demand(request_dict):
 
 	try:
 		sa =Sentiment_Analysis()
-		sentiment_flag,sentiment_score,err = sa.sentiment_analysis(request_dict)
+		sentiment_result_tuple,err = sa.sentiment_analysis(request_dict)
 		if err:
 			logger_impl.error('process_on_demand: sentiment_analysis return err: %s' % err)
 			return None,err
 
+		flag,score= sentiment_result_tuple
+		sentiment_score = int(flag) * float(score)
 		return sentiment_score,None
 
 	except Exception,e:

@@ -8,7 +8,8 @@ from __future__ import absolute_import, unicode_literals
 import jieba
 import jieba.posseg as pseg
 import re 
-import pickle
+#import pickle
+import cPickle as pickle
 
       
 class Sentiment_Analysis():

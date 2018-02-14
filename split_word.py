@@ -143,9 +143,13 @@ class doc_splitter():
 			else:
 				out_pair = [(wordpair.word,wordpair.flag) for wordpair in word_pair_list]
 
+			'''
 			out_pair_processed,err = self._process_number(out_pair)
 			if err:
 				return (None,err)
+			'''
+			out_pair_processed = out_pair
+
 
 			return (out_pair_processed,None)
 			'''
